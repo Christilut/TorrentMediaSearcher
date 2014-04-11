@@ -12,7 +12,7 @@ def test_tv():
 
 
 def test_movie():
-    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'iron man 3', callback=on_finished)
+    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'iron man', callback=on_finished)
 
     print 'Waiting for results...'
 

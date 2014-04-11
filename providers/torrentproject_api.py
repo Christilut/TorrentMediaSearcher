@@ -25,19 +25,22 @@ class TorrentProjectAPI(BaseAPI):
         results = dict()
 
         try:
-            results[self._NORMAL_SPECIFIER] = self._get_magnet_tv(query=query, quality=TorrentProjectAPI._NORMAL_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['normal tv']
+            results[quality] = self._get_magnet_tv(query=query, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._NORMAL_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         try:
-            results[self._HD_SPECIFIER] = self._get_magnet_tv(query=query, quality=TorrentProjectAPI._HD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['hd']
+            results[quality] = self._get_magnet_tv(query=query, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._HD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         try:
-            results[self._FULLHD_SPECIFIER] = self._get_magnet_tv(query=query, quality=TorrentProjectAPI._FULLHD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['fullhd']
+            results[quality] = self._get_magnet_tv(query=query, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._FULLHD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
             raise EpisodeNotFound('Could not find episode ' + str(episode) + ' of season ' + str(season) + ' of ' + show)
@@ -59,20 +62,28 @@ class TorrentProjectAPI(BaseAPI):
 
         results = dict()
 
-        try:
-            results[self._NORMAL_SPECIFIER] = self._get_magnet_movie(query=query, quality=TorrentProjectAPI._NORMAL_SPECIFIER)
+        try:        # Often movies with many seeders do not have a quality tag. So quality is unknown.
+            results['unknown quality'] = self._get_magnet_movie(query=query)    # Do not specify a quality
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._NORMAL_SPECIFIER
+            print 'Could not find anything without quality specifiers'
 
         try:
-            results[self._HD_SPECIFIER] = self._get_magnet_movie(query=query, quality=TorrentProjectAPI._HD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['normal movie']
+            results[quality] = self._get_magnet_movie(query=query, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._HD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         try:
-            results[self._FULLHD_SPECIFIER] = self._get_magnet_movie(query=query, quality=TorrentProjectAPI._FULLHD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['hd']
+            results[quality] = self._get_magnet_movie(query=query, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._FULLHD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
+
+        try:
+            quality = self._QUALITY_SPECIFIERS['fullhd']
+            results[quality] = self._get_magnet_movie(query=query, quality=quality)
+        except QualityNotFound:
+            print 'Could not find anything matching the quality:', quality
 
         if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
             raise MovieNotFound('Could not find movie ' + self._wanted_movie)
@@ -80,7 +91,7 @@ class TorrentProjectAPI(BaseAPI):
         return results
 
     def _get_json(self, query, quality=None):
-        if quality is not None:     # Allow None so a search can be performed without any quality, to see if it exists at all
+        if quality is not None:     # Allow None so a search can be performed without any quality string
             query += '+' + quality
 
         try:
@@ -128,7 +139,7 @@ class TorrentProjectAPI(BaseAPI):
             if re.search('season', entry['title'], re.IGNORECASE) is not None: continue         # If the regular expression outcome is None, the word was not found. In this case, we do not want Season or Complete in it as they indicate full seasons instead of episodes
             if re.search('complete', entry['title'], re.IGNORECASE) is not None: continue       # Same with the word complete
 
-            for s in self._TV_SPECIFIERS:
+            for s in self._TV_INDEX_SPECIFIERS:
                 regex_result = re.search(s, entry['title'], re.IGNORECASE)
                 if regex_result is not None:
                     if int(regex_result.group(1)) == self._wanted_season and int(regex_result.group(2)) == self._wanted_episode:
@@ -140,14 +151,17 @@ class TorrentProjectAPI(BaseAPI):
         if best is None:
             raise QualityNotFound()
 
-        return self._get_magnet(best['torrent_hash'])
+        return self._get_magnet(torrent_hash=best['torrent_hash'])
 
-    def _get_magnet_movie(self, query, quality):
+    def _get_magnet_movie(self, query, quality=None):
         """ Returns the URL to a torrent/magnet link of specified quality or raise error if not found """
 
         json = self._get_json(query, quality)
 
-        movie_regex = self._wanted_movie.replace(' ', '.')      # e.g. Movie?Name?5
+        movie_regex = self._wanted_movie.replace(' ', '\D?')      # e.g. Movie?Name?5
+        # movie_regex += '..\D{1}'
+
+        if quality is None: quality = ''
 
         best = None
         num_seeds = 0
@@ -158,10 +172,12 @@ class TorrentProjectAPI(BaseAPI):
 
             # Perform some checks
             if n == 'total_found': continue                                                     # TorrentProject adds a total_found that we must ignore
-            if entry['category'] != 'hdrip' and entry['category'] != 'tv': continue             # Ignore anything that is not from the HDRIP or TV category (TorrentProjects puts SD quality movies in TV)
+            # if entry['category'] != 'hdrip' and entry['category'] != 'tv': continue           # Ignore anything that is not from the HDRIP or TV category (TorrentProjects puts SD quality movies in TV)
             if re.search(movie_regex, entry['title'], re.IGNORECASE) is None: continue          # Check if movie name is in the title in any form
-            if self._contains_language(entry['title']): continue                                # Check if movie title contains language terms that we dont want
-            if self._contains_specifier(entry['title']): continue                               # Check if the torrent is really a movie and not a tv show
+            if self._contains_language(title=entry['title']): continue                          # Check if movie title contains language terms that we dont want
+            if self._contains_specifier(title=entry['title']): continue                         # Check if the torrent is really a movie and not a tv show
+            if re.search(quality, entry['title'], re.IGNORECASE) is None: continue              # Check that the quality string is in the title
+            if self._contains_unwanted_quality_specifier(title=entry['title'], wanted_quality=quality): continue # Skip files that contains wrong quality identifiers
 
             if entry['seeds'] > num_seeds or (entry['seeds'] == num_seeds and entry['leechs'] > num_leechs):  # Take link with most seeds, if the same amount, take the one with most leechs
                 best = entry
@@ -171,20 +187,12 @@ class TorrentProjectAPI(BaseAPI):
         if best is None:
             raise QualityNotFound()
 
-        return self._get_magnet(best['torrent_hash'])
+        return self._get_magnet(torrent_hash=best['torrent_hash'])
 
-    def _contains_language(self, title):
-        for lan in self._LANGUAGES:
-            if re.search(lan, title, re.IGNORECASE) is not None:    # If found
-                return True
-        return False
 
-    def _contains_specifier(self, title):
-        for s in self._TV_SPECIFIERS:
-            regex = re.search(s, title, re.IGNORECASE)
-            if regex is not None:
-                return True
-        return False
+
+
+
 
 
 

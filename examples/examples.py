@@ -12,11 +12,11 @@ def test_tv():
 
 
 def test_movie():
-    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'the italian job', callback=on_finished)
+    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'iron man 3', callback=on_finished)
 
     print 'Waiting for results...'
 
 
-# test_movie()
+test_movie()
 
-test_tv()
+# test_tv()

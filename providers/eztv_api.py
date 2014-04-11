@@ -16,17 +16,17 @@ class EZTVAPI(BaseAPI):
         results = dict()
 
         try:
-            results[self._NORMAL_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=EZTVAPI._NORMAL_SPECIFIER)
+            results[self._NORMAL_TV_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._NORMAL_TV_SPECIFIER)
         except QualityNotFound:     # Quality not found, just ignore it
-            print 'Could not find anything matching the quality:', self._NORMAL_SPECIFIER
+            print 'Could not find anything matching the quality:', self._NORMAL_TV_SPECIFIER
 
         try:
-            results[self._HD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=EZTVAPI._HD_SPECIFIER)
+            results[self._HD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._HD_SPECIFIER)
         except QualityNotFound:
             print 'Could not find anything matching the quality:', self._HD_SPECIFIER
 
         try:
-            results[self._FULLHD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=EZTVAPI._FULLHD_SPECIFIER)
+            results[self._FULLHD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._FULLHD_SPECIFIER)
         except QualityNotFound:
             print 'Could not find anything matching the quality:', self._FULLHD_SPECIFIER
 
@@ -82,7 +82,7 @@ class EZTVAPI(BaseAPI):
             if re.search(show, e.text, re.IGNORECASE) is None: continue     # Skip if text does not contain show name
             if re.search(quality, e.text, re.IGNORECASE) is None: continue  # Skip if text does not contain wanted quality
 
-            for s in self._TV_SPECIFIERS:
+            for s in self._TV_INDEX_SPECIFIERS:
                 regex_result = re.search(s, e.text, re.IGNORECASE)
                 if  regex_result is not None:
                     if int(regex_result.group(1)) == season and int(regex_result.group(2)) == episode:

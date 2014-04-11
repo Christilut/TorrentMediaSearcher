@@ -1,15 +1,18 @@
-import threading
+import threading, re
 
 
 class BaseAPI(threading.Thread):
 
     _URL = None
 
-    _NORMAL_SPECIFIER = 'HDTV'
-    _HD_SPECIFIER = '720p'
-    _FULLHD_SPECIFIER = '1080p'
+    _QUALITY_SPECIFIERS = {
+        'normal tv' : 'HDTV',
+        'normal movie' : 'XVID',
+        'hd' : '720p',
+        'fullhd' : '1080p',
+    }
 
-    _TV_SPECIFIERS = [
+    _TV_INDEX_SPECIFIERS = [
             r'S(\d+)E(\d+)',            # Regex for S??E??
             r'(\D+\d{2})x(\d{2}\D+)',   # Regex for ??x?? and makes sure before and after are no numbers or it could match a resolution (1024x768)
         ]
@@ -21,6 +24,9 @@ class BaseAPI(threading.Thread):
              'NL',
              'ITALIAN',
              'SPANISH',
+             'LATINO',
+             'RUS',
+             'HEBREW',
     ]
 
     _wanted_movie = None
@@ -77,7 +83,25 @@ class BaseAPI(threading.Thread):
     def _query_movie(self, movie):
         raise NotImplementedError('This method must be implemented')
 
+    def _contains_language(self, title):
+        for lan in self._LANGUAGES:
+            if re.search(lan, title, re.IGNORECASE) is not None:    # If found
+                return True
+        return False
 
+    def _contains_specifier(self, title):
+        for s in self._TV_INDEX_SPECIFIERS:
+            regex = re.search(s, title, re.IGNORECASE)
+            if regex is not None:
+                return True
+        return False
+
+    def _contains_unwanted_quality_specifier(self, title, wanted_quality):
+        for q in self._QUALITY_SPECIFIERS:
+            if self._QUALITY_SPECIFIERS[q] == wanted_quality: continue         # Don't check the wanted quality
+            if re.search(self._QUALITY_SPECIFIERS[q], title, re.IGNORECASE) is not None:    # If found
+                return True
+        return False
 
 """
     Exceptions

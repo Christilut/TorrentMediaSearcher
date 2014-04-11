@@ -5,6 +5,7 @@ from providers.torrentproject_api import TorrentProjectAPI
 class TorrentMediaSearcher():
                         # TODO search for complete season and if they have more seeds, prioritize them
                         # TODO check for PROPER releases (and other keywords)
+                        # TODO add seeders so users can make an informed decision which torrent to use
 
     _PROVIDERS = {
         'eztv' : EZTVAPI,

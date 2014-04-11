@@ -51,6 +51,12 @@ class TorrentProjectAPI(BaseAPI):
         if self._get_json(query=query)['total_found'] == '0':
             raise MovieNotFound()
 
+        search_terms = self._wanted_movie.split(' ')            # Get the words in the movie
+        for s in search_terms:
+            for lan in self._LANGUAGES:                         # This removes languages that are in the search terms. Otherwise movies with search terms equal to a langauge would always be skipped
+                if re.match(s, lan, re.IGNORECASE):
+                    self._LANGUAGES.remove(lan)
+
         results = dict()
 
         try:
@@ -154,17 +160,31 @@ class TorrentProjectAPI(BaseAPI):
             if n == 'total_found': continue                                                     # TorrentProject adds a total_found that we must ignore
             if entry['category'] != 'hdrip' and entry['category'] != 'tv': continue             # Ignore anything that is not from the HDRIP or TV category (TorrentProjects puts SD quality movies in TV)
             if re.search(movie_regex, entry['title'], re.IGNORECASE) is None: continue          # Check if movie name is in the title in any form
+            if self._contains_language(entry['title']): continue                                # Check if movie title contains language terms that we dont want
+            if self._contains_specifier(entry['title']): continue                               # Check if the torrent is really a movie and not a tv show
 
             if entry['seeds'] > num_seeds or (entry['seeds'] == num_seeds and entry['leechs'] > num_leechs):  # Take link with most seeds, if the same amount, take the one with most leechs
                 best = entry
                 num_seeds = entry['seeds']
                 num_leechs = entry['leechs']
 
-
         if best is None:
             raise QualityNotFound()
 
         return self._get_magnet(best['torrent_hash'])
+
+    def _contains_language(self, title):
+        for lan in self._LANGUAGES:
+            if re.search(lan, title, re.IGNORECASE) is not None:    # If found
+                return True
+        return False
+
+    def _contains_specifier(self, title):
+        for s in self._TV_SPECIFIERS:
+            regex = re.search(s, title, re.IGNORECASE)
+            if regex is not None:
+                return True
+        return False
 
 
 

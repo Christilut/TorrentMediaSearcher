@@ -10,9 +10,18 @@ class BaseAPI(threading.Thread):
     _FULLHD_SPECIFIER = '1080p'
 
     _TV_SPECIFIERS = [
-            r"S(\d+)E(\d+)",        # Regex for S??E??
-            r"(\d+)x(\d+)",         # Regex for ??x??
+            r'S(\d+)E(\d+)',            # Regex for S??E??
+            r'(\D+\d{2})x(\d{2}\D+)',   # Regex for ??x?? and makes sure before and after are no numbers or it could match a resolution (1024x768)
         ]
+
+    _LANGUAGES = [                  # Common language keywords found in torrents, so we can filter them. Sorry, only English supported for now.
+             'GERMAN',
+             'FRENCH',
+             'DUTCH',
+             'NL',
+             'ITALIAN',
+             'SPANISH',
+    ]
 
     _wanted_movie = None
     _wanted_show = None

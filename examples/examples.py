@@ -6,17 +6,17 @@ def on_finished(results):
 
 
 def test_tv():
-    TorrentMediaSearcher().request_tv_magnets('eztv', 'big bang theory', 1, 10, callback=on_finished)
+    TorrentMediaSearcher().request_tv_magnets('torrentproject', 'big bang theory', 1, 10, callback=on_finished)
 
     print 'Waiting for results...'
 
 
 def test_movie():
-    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'iron man 3', callback=on_finished)
+    TorrentMediaSearcher().request_movie_magnets('torrentproject', 'the italian job', callback=on_finished)
 
     print 'Waiting for results...'
 
 
-test_movie()
+# test_movie()
 
-# test_tv()
+test_tv()

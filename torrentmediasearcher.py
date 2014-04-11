@@ -11,26 +11,39 @@ class TorrentMediaSearcher():
         'torrentproject' : TorrentProjectAPI,
         }
 
-    def __init__(self):
-        pass
-
-    def _print_results(self, results):
+    @staticmethod
+    def _print_results(results):
         print results
 
-    def request_movie_magnets(self, callback, provider, movie, quality):
-        pass
-
-    def request_tv_magnets(self, provider, show, season, episode, callback=None):
+    @staticmethod
+    def request_movie_magnets(provider, movie, callback=None):
         provider_class = None
 
-        if provider in self._PROVIDERS:
-            provider_class = self._PROVIDERS[provider]
+        if provider in TorrentMediaSearcher._PROVIDERS:
+            provider_class = TorrentMediaSearcher._PROVIDERS[provider]
         else:
-            raise ValueError('No valid search provider selected, choose from: ' + str(self._PROVIDERS.keys()))
+            raise ValueError('No valid search provider selected, choose from: ' + str(TorrentMediaSearcher._PROVIDERS.keys()))
 
         if callback is None:
             print 'No callback function specified, only printing results'
-            callback = self._print_results
+            callback = TorrentMediaSearcher._print_results
 
-        provider_class(callback=callback, show=show, season=season, episode=episode).start()
+        search = provider_class(callback=callback)
+        search.set_movie(movie=movie)
+
+    @staticmethod
+    def request_tv_magnets(provider, show, season, episode, callback=None):
+        provider_class = None
+
+        if provider in TorrentMediaSearcher._PROVIDERS:
+            provider_class = TorrentMediaSearcher._PROVIDERS[provider]
+        else:
+            raise ValueError('No valid search provider selected, choose from: ' + str(TorrentMediaSearcher._PROVIDERS.keys()))
+
+        if callback is None:
+            print 'No callback function specified, only printing results'
+            callback = TorrentMediaSearcher._print_results
+
+        search = provider_class(callback=callback)
+        search.set_tv(show=show, season=season, episode=episode)
 

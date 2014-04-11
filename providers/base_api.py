@@ -9,47 +9,63 @@ class BaseAPI(threading.Thread):
     _HD_SPECIFIER = '720p'
     _FULLHD_SPECIFIER = '1080p'
 
-    _SPECIFIERS = [
-            r"S(\d+)E(\d+)",        # Matches SXXEYY (eg. S01E10)
-            r"(\d+)x(\d+)",         # Matches SSxYY (eg. 01x10)
+    _TV_SPECIFIERS = [
+            r"S(\d+)E(\d+)",        # Regex for S??E??
+            r"(\d+)x(\d+)",         # Regex for ??x??
         ]
 
-    def __init__(self, callback, show, season, episode):
+    _wanted_movie = None
+    _wanted_show = None
+    _wanted_season = None
+    _wanted_episode = None
+
+    _func_to_run = None
+
+    def __init__(self, callback):
         threading.Thread.__init__(self)
 
         self.callback = callback
 
-        self.show = show
-        self.season = season
-        self.episode = episode
-
         if self._URL is None:
             raise ValueError('URL has not been set')
 
+    def set_tv(self, show, season, episode):
+        self._wanted_show = show
+        self._wanted_season = season
+        self._wanted_episode = episode
+
+        self._func_to_run = self._create_tvshow_request
+        self.start()
+
+    def set_movie(self, movie):
+        self._wanted_movie = movie
+
+        self._func_to_run = self._create_movie_request
+        self.start()
+
     def run(self):
-        self.tv_show(show=self.show, season=self.season, episode=self.episode)
+        self._func_to_run()
 
-    def tv_show(self, show, season, episode):
-        results = None
-
+    def _create_tvshow_request(self):
         try:
-            results = self._query_tv_show(show=show, season=season, episode=episode)
+            results = self._query_tv_show(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode)
+            self.callback(results)
         except EpisodeNotFound:
-            print 'No results found, maybe the episode does not exist?'
-        except SeasonNotFound:
-            raise NotImplementedError
+            print 'No results found, maybe the season or episode does not exist?'
         except ShowNotFound:
-            print 'No results for show', self.show, 'were found'
+            print 'No results for show', self._wanted_show, 'were found'
 
-        self.callback(results)
-
-    def movie(self, *args):
-        raise NotImplementedError('This method must be implemented')
+    def _create_movie_request(self):
+        try:
+            results = self._query_movie(movie=self._wanted_movie)
+            self.callback(results)
+        except MovieNotFound:
+            print 'No results found for', self._wanted_movie
 
     def _query_tv_show(self, show, season, episode):
         raise NotImplementedError('This method must be implemented')
 
-    def _query_movie(self, *args):
+    def _query_movie(self, movie):
         raise NotImplementedError('This method must be implemented')
 
 
@@ -70,11 +86,6 @@ class ShowNotFound(ProviderException):
         Raised when the specified show is not found
     """
 
-class SeasonNotFound(ProviderException):
-    """
-        Raised when the specified season is not found
-    """
-
 class EpisodeNotFound(ProviderException):
     """
         Raised when the specified episode is not found
@@ -83,4 +94,9 @@ class EpisodeNotFound(ProviderException):
 class QualityNotFound(ProviderException):
     """
         Raised when the specified quality is not found
+    """
+
+class MovieNotFound(ProviderException):
+    """
+        Raised when the specified movie is not found
     """

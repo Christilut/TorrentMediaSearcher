@@ -11,7 +11,7 @@ class EZTVAPI(BaseAPI):
     _URL = "http://eztv.it"
 
     def _query_tv_show(self, show, season, episode):
-        show_id = self._get_show_id(show)
+        show_id = self._get_show_id(show=show)
 
         results = dict()
 
@@ -33,7 +33,7 @@ class EZTVAPI(BaseAPI):
         if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
             raise EpisodeNotFound('Could not find episode ' + str(episode) + ' of season ' + str(season) + ' of ' + show)
 
-        self.callback(results)
+        return results
 
     def _query_movie(self, *args):
         raise RuntimeError('Movies are not supported in the EZTV provider')
@@ -82,7 +82,7 @@ class EZTVAPI(BaseAPI):
             if re.search(show, e.text, re.IGNORECASE) is None: continue     # Skip if text does not contain show name
             if re.search(quality, e.text, re.IGNORECASE) is None: continue  # Skip if text does not contain wanted quality
 
-            for s in self._SPECIFIERS:
+            for s in self._TV_SPECIFIERS:
                 regex_result = re.search(s, e.text, re.IGNORECASE)
                 if  regex_result is not None:
                     if int(regex_result.group(1)) == season and int(regex_result.group(2)) == episode:

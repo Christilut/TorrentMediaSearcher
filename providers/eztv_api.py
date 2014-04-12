@@ -10,25 +10,28 @@ class EZTVAPI(BaseAPI):
 
     _URL = "http://eztv.it"
 
-    def _query_tv_show(self, show, season, episode):
+    def _query_tvshow(self, show, season, episode):
         show_id = self._get_show_id(show=show)
 
         results = dict()
 
         try:
-            results[self._NORMAL_TV_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._NORMAL_TV_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['normal tv']
+            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
         except QualityNotFound:     # Quality not found, just ignore it
-            print 'Could not find anything matching the quality:', self._NORMAL_TV_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         try:
-            results[self._HD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._HD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['hd']
+            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._HD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         try:
-            results[self._FULLHD_SPECIFIER] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=self._FULLHD_SPECIFIER)
+            quality = self._QUALITY_SPECIFIERS['fullhd']
+            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
         except QualityNotFound:
-            print 'Could not find anything matching the quality:', self._FULLHD_SPECIFIER
+            print 'Could not find anything matching the quality:', quality
 
         if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
             raise EpisodeNotFound('Could not find episode ' + str(episode) + ' of season ' + str(season) + ' of ' + show)

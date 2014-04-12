@@ -12,7 +12,7 @@ class TorrentProjectAPI(BaseAPI):
 
     _URL = 'http://torrentproject.com/'
 
-    def _query_tv_show(self, show, season, episode):
+    def _query_tvshow(self, show, season, episode):
         query_string = show.replace(' ', '+')
         specifier = 's%02d' % season + 'e%02d' % episode
 
@@ -20,7 +20,7 @@ class TorrentProjectAPI(BaseAPI):
 
         # Before searching with specified quality, do a search without, to see if the show exists
         if self._get_json(query=query_string)['total_found'] == '0':
-            raise ShowNotFound()
+            raise ShowNotFound('No results were found for show: ' + show)
 
         results = dict()
 
@@ -52,7 +52,7 @@ class TorrentProjectAPI(BaseAPI):
 
         # Before searching with specified quality, do a search without, to see if the movie exists
         if self._get_json(query=query)['total_found'] == '0':
-            raise MovieNotFound()
+            raise MovieNotFound('No results found for movie: ' + movie)
 
         search_terms = self._wanted_movie.split(' ')            # Get the words in the movie
         for s in search_terms:
@@ -62,7 +62,7 @@ class TorrentProjectAPI(BaseAPI):
 
         results = dict()
 
-        try:        # Often movies with many seeders do not have a quality tag. So quality is unknown.
+        try:        # Often movies with many seeders on TorrentProject do not have a quality tag. So quality is unknown.
             results['unknown quality'] = self._get_magnet_movie(query=query)    # Do not specify a quality
         except QualityNotFound:
             print 'Could not find anything without quality specifiers'
@@ -85,8 +85,8 @@ class TorrentProjectAPI(BaseAPI):
         except QualityNotFound:
             print 'Could not find anything matching the quality:', quality
 
-        if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
-            raise MovieNotFound('Could not find movie ' + self._wanted_movie)
+        if len(results) == 0:   # No quality of any kind was found, most likely the movie  does not exist.
+            raise MovieNotFound('No results found for movie: ' + self._wanted_movie)
 
         return results
 

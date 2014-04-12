@@ -1,7 +1,7 @@
-import threading, re
+import re
 
 
-class BaseAPI(threading.Thread):
+class BaseAPI():
 
     _URL = None
 
@@ -37,47 +37,24 @@ class BaseAPI(threading.Thread):
     _func_to_run = None
 
     def __init__(self, callback):
-        threading.Thread.__init__(self)
-
         self.callback = callback
 
         if self._URL is None:
             raise ValueError('URL has not been set')
 
-    def set_tv(self, show, season, episode):
+    def create_tvshow_request(self, show, season, episode):
         self._wanted_show = show
         self._wanted_season = season
         self._wanted_episode = episode
+        results = self._query_tvshow(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode)
+        self.callback(results)
 
-        self._func_to_run = self._create_tvshow_request
-        self.start()
-
-    def set_movie(self, movie):
+    def create_movie_request(self, movie):
         self._wanted_movie = movie
+        results = self._query_movie(movie=movie)
+        self.callback(results)
 
-        self._func_to_run = self._create_movie_request
-        self.start()
-
-    def run(self):
-        self._func_to_run()
-
-    def _create_tvshow_request(self):
-        try:
-            results = self._query_tv_show(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode)
-            self.callback(results)
-        except EpisodeNotFound:
-            print 'No results found, maybe the season or episode does not exist?'
-        except ShowNotFound:
-            print 'No results for show', self._wanted_show, 'were found'
-
-    def _create_movie_request(self):
-        try:
-            results = self._query_movie(movie=self._wanted_movie)
-            self.callback(results)
-        except MovieNotFound:
-            print 'No results found for', self._wanted_movie
-
-    def _query_tv_show(self, show, season, episode):
+    def _query_tvshow(self, show, season, episode):
         raise NotImplementedError('This method must be implemented')
 
     def _query_movie(self, movie):
@@ -91,8 +68,7 @@ class BaseAPI(threading.Thread):
 
     def _contains_specifier(self, title):
         for s in self._TV_INDEX_SPECIFIERS:
-            regex = re.search(s, title, re.IGNORECASE)
-            if regex is not None:
+            if re.search(s, title, re.IGNORECASE) is not None:
                 return True
         return False
 

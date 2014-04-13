@@ -5,6 +5,10 @@ def on_finished(results):
     for n in results:
         print repr(n), ':', results[n]
 
+    print ''
+    if results.has_key('720p'):
+        print '720p has', results['720p']['seeds'], 'seeds and the following magnet link:', results['720p']['magnet']
+
 
 def test_tv():
     try:
@@ -25,6 +29,6 @@ def test_movie():
 
 
 import threading
-threading.Thread(target=test_movie).start()    # Create the request in a thread, so it does not block the main thread
+threading.Thread(target=test_tv).start()    # Create the request in a thread, so it does not block the main thread
 
 print 'Waiting for results...'

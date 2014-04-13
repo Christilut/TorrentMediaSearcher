@@ -11,6 +11,28 @@ class TorrentProjectAPI(BaseAPI):
 
     _URL = 'http://torrentproject.com/'
 
+    _LANGUAGES = [                  # Common language keywords found in torrents, so we can filter them. Sorry, only English supported for now.
+        'GERMAN',
+        'FRENCH',
+        'DUTCH',
+        'NL',
+        'ITALIAN',
+        'SPANISH',
+        'LATINO',
+        'RUS',
+        'HEBREW',
+    ]
+
+    _UNWANTED_MOVIE_KEYWORDS = [          # Torrents with these keywords found will be ignored (unless the keyword is in the movie title)
+        'TRILOGY',
+        'DUOLOGY',
+    ]
+
+    _UNWANTED_TV_KEYWORDS = [
+        'SEASON',
+        'COMPLETE',
+    ]
+
     def _query_tvshow(self, show, season, episode):
         query_string = show.replace(' ', '+')
         specifier = 's%02d' % season + 'e%02d' % episode
@@ -153,7 +175,7 @@ class TorrentProjectAPI(BaseAPI):
         if best is None:
             raise QualityNotFound()
 
-        return self._get_magnet(torrent_hash=best['torrent_hash'])
+        return {'magnet': self._get_magnet(torrent_hash=best['torrent_hash']), 'seeds': best['seeds'] }
 
     def _get_magnet_movie(self, query, quality=None):
         """ Returns the URL to a torrent/magnet link of specified quality or raise error if not found """
@@ -196,7 +218,7 @@ class TorrentProjectAPI(BaseAPI):
         if best is None:
             raise QualityNotFound()
 
-        return self._get_magnet(torrent_hash=best['torrent_hash'])
+        return {'magnet': self._get_magnet(torrent_hash=best['torrent_hash']), 'seeds': best['seeds'] }
 
 
 

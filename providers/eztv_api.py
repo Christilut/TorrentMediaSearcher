@@ -97,7 +97,7 @@ class EZTVAPI(BaseAPI):
         if wanted_episode is None:
             raise QualityNotFound()
 
-        return wanted_episode.parent.next_sibling.next_sibling.find(class_='magnet').get('href')
+        return {'magnet': wanted_episode.parent.next_sibling.next_sibling.find(class_='magnet').get('href'), 'seeds': 'unknown'}
 
 
 

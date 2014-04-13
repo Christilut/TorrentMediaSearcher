@@ -1,5 +1,6 @@
 import re
 
+
 class BaseAPI():
 
     _URL = None
@@ -14,28 +15,6 @@ class BaseAPI():
     _TV_INDEX_SPECIFIERS = [
         r'S(\d+)E(\d+)',            # Regex for S??E??
         r'(\D+\d{2})x(\d{2}\D+)',   # Regex for ??x?? and makes sure before and after are no numbers or it could match a resolution (1024x768)
-    ]
-
-    _LANGUAGES = [                  # Common language keywords found in torrents, so we can filter them. Sorry, only English supported for now.
-         'GERMAN',
-         'FRENCH',
-         'DUTCH',
-         'NL',
-         'ITALIAN',
-         'SPANISH',
-         'LATINO',
-         'RUS',
-         'HEBREW',
-    ]
-
-    _UNWANTED_MOVIE_KEYWORDS = [          # Torrents with these keywords found will be ignored (unless the keyword is in the movie title)
-        'TRILOGY',
-        'DUOLOGY',
-    ]
-
-    _UNWANTED_TV_KEYWORDS = [
-        'SEASON',
-        'COMPLETE',
     ]
 
     _wanted_movie = None
@@ -88,6 +67,7 @@ class BaseAPI():
     Exceptions
 """
 
+
 class ProviderException(Exception):
 
     def __init__(self, message=None, errors=None):
@@ -95,20 +75,24 @@ class ProviderException(Exception):
         Exception.__init__(self, message)
         self.errors = errors
 
+
 class ShowNotFound(ProviderException):
     """
         Raised when the specified show is not found
     """
+
 
 class EpisodeNotFound(ProviderException):
     """
         Raised when the specified episode is not found
     """
 
+
 class QualityNotFound(ProviderException):
     """
         Raised when the specified quality is not found
     """
+
 
 class MovieNotFound(ProviderException):
     """

@@ -47,8 +47,9 @@ class TorrentProjectAPI(BaseAPI):
 
         return results
 
-    def _query_movie(self, movie):
+    def _query_movie(self, movie, year):
         query = movie.replace(' ', '+')
+        if year is not None: query += '+' + str(year)
 
         # Before searching with specified quality, do a search without, to see if the movie exists
         if self._get_json(query=query)['total_found'] == '0':
@@ -133,11 +134,13 @@ class TorrentProjectAPI(BaseAPI):
         for n in json:
             entry = json[n]
 
-            # Perform some checks
             if n == 'total_found': continue                                                     # TorrentProject adds a total_found that we must ignore
+
+            title = entry['title']
+
+            # Perform some checks
             if entry['category'] != 'tv': continue                                              # Ignore anything that is not from the TV category
-            if re.search('season', entry['title'], re.IGNORECASE) is not None: continue         # If the regular expression outcome is None, the word was not found. In this case, we do not want Season or Complete in it as they indicate full seasons instead of episodes
-            if re.search('complete', entry['title'], re.IGNORECASE) is not None: continue       # Same with the word complete
+            if self._contains(title=title, container=self._UNWANTED_TV_KEYWORDS): continue      # Ignore torrents with invalid keywords (such as Season or Complete)
 
             for s in self._TV_INDEX_SPECIFIERS:
                 regex_result = re.search(s, entry['title'], re.IGNORECASE)
@@ -158,8 +161,12 @@ class TorrentProjectAPI(BaseAPI):
 
         json = self._get_json(query, quality)
 
-        movie_regex = self._wanted_movie.replace(' ', '\D?')      # e.g. Movie?Name?5
-        # movie_regex += '..\D{1}'
+        movie = self._wanted_movie
+        terms_removed = re.findall(r'-\w+', self._wanted_movie, re.IGNORECASE) # Terms such -foo should be ignored when searching the titles
+        for t in terms_removed: movie = movie.replace(t, '')
+
+        movie = movie.strip()   # Remove start and trailing whitespaces
+        movie_regex = movie.replace(' ', '\D?')      # e.g. Movie?Name?5
 
         if quality is None: quality = ''
 
@@ -170,14 +177,17 @@ class TorrentProjectAPI(BaseAPI):
         for n in json:
             entry = json[n]
 
+            if n == 'total_found': continue                                                                     # TorrentProject adds a total_found that we must ignore
+
+            title = entry['title']
+
             # Perform some checks
-            if n == 'total_found': continue                                                     # TorrentProject adds a total_found that we must ignore
-            # if entry['category'] != 'hdrip' and entry['category'] != 'tv': continue           # Ignore anything that is not from the HDRIP or TV category (TorrentProjects puts SD quality movies in TV)
-            if re.search(movie_regex, entry['title'], re.IGNORECASE) is None: continue          # Check if movie name is in the title in any form
-            if self._contains_language(title=entry['title']): continue                          # Check if movie title contains language terms that we dont want
-            if self._contains_specifier(title=entry['title']): continue                         # Check if the torrent is really a movie and not a tv show
-            if re.search(quality, entry['title'], re.IGNORECASE) is None: continue              # Check that the quality string is in the title
-            if self._contains_unwanted_quality_specifier(title=entry['title'], wanted_quality=quality): continue # Skip files that contains wrong quality identifiers
+            if self._contains(title=title, container=self._LANGUAGES): continue                                 # Check if movie title contains language terms that we dont want
+            if self._contains(title=title, container=self._TV_INDEX_SPECIFIERS): continue                       # Check if the torrent is really a movie and not a tv show
+            if re.search(quality, title, re.IGNORECASE) is None: continue                                       # Check that the quality string is in the title
+            if self._contains_unwanted_quality_specifier(title=title, wanted_quality=quality): continue         # Skip files that contains wrong quality identifiers
+            if self._contains(title=title, container=self._UNWANTED_MOVIE_KEYWORDS): continue                   # Check the title for unwanted keywords
+            if re.search(movie_regex, title, re.IGNORECASE) is None: continue                                   # The movie name was not found in the title, wrong search result so ignore it
 
             if entry['seeds'] > num_seeds or (entry['seeds'] == num_seeds and entry['leechs'] > num_leechs):  # Take link with most seeds, if the same amount, take the one with most leechs
                 best = entry

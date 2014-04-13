@@ -19,12 +19,12 @@ def test_tv():
 
 def test_movie():
     try:
-        TorrentMediaSearcher().request_movie_magnets('torrentpsefroject', 'iron man', callback=on_finished)
+        TorrentMediaSearcher().request_movie_magnets('torrentproject', 'iron man', 2008, callback=on_finished)
     except MovieNotFound as e:
         print e
 
 
 import threading
-threading.Thread(target=test_tv).start()
+threading.Thread(target=test_tv).start()    # Create the request in a thread, so it does not block the main thread
 
 print 'Waiting for results...'

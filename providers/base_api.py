@@ -13,23 +13,34 @@ class BaseAPI():
     }
 
     _TV_INDEX_SPECIFIERS = [
-            r'S(\d+)E(\d+)',            # Regex for S??E??
-            r'(\D+\d{2})x(\d{2}\D+)',   # Regex for ??x?? and makes sure before and after are no numbers or it could match a resolution (1024x768)
-        ]
+        r'S(\d+)E(\d+)',            # Regex for S??E??
+        r'(\D+\d{2})x(\d{2}\D+)',   # Regex for ??x?? and makes sure before and after are no numbers or it could match a resolution (1024x768)
+    ]
 
     _LANGUAGES = [                  # Common language keywords found in torrents, so we can filter them. Sorry, only English supported for now.
-             'GERMAN',
-             'FRENCH',
-             'DUTCH',
-             'NL',
-             'ITALIAN',
-             'SPANISH',
-             'LATINO',
-             'RUS',
-             'HEBREW',
+         'GERMAN',
+         'FRENCH',
+         'DUTCH',
+         'NL',
+         'ITALIAN',
+         'SPANISH',
+         'LATINO',
+         'RUS',
+         'HEBREW',
+    ]
+
+    _UNWANTED_MOVIE_KEYWORDS = [          # Torrents with these keywords found will be ignored (unless the keyword is in the movie title)
+        'TRILOGY',
+        'DUOLOGY',
+    ]
+
+    _UNWANTED_TV_KEYWORDS = [
+        'SEASON',
+        'COMPLETE',
     ]
 
     _wanted_movie = None
+    _wanted_year = None
     _wanted_show = None
     _wanted_season = None
     _wanted_episode = None
@@ -49,9 +60,10 @@ class BaseAPI():
         results = self._query_tvshow(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode)
         self.callback(results)
 
-    def create_movie_request(self, movie):
+    def create_movie_request(self, movie, year):
         self._wanted_movie = movie
-        results = self._query_movie(movie=movie)
+        self._wanted_year = year
+        results = self._query_movie(movie=movie, year=year)
         self.callback(results)
 
     def _query_tvshow(self, show, season, episode):
@@ -60,15 +72,9 @@ class BaseAPI():
     def _query_movie(self, movie):
         raise NotImplementedError('This method must be implemented')
 
-    def _contains_language(self, title):
-        for lan in self._LANGUAGES:
-            if re.search(lan, title, re.IGNORECASE) is not None:    # If found
-                return True
-        return False
-
-    def _contains_specifier(self, title):
-        for s in self._TV_INDEX_SPECIFIERS:
-            if re.search(s, title, re.IGNORECASE) is not None:
+    def _contains(self, title, container):
+        for c in container:
+            if re.search(c, title, re.IGNORECASE) is not None:      # If found
                 return True
         return False
 

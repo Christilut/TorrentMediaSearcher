@@ -20,3 +20,8 @@ todo
 
 ### Installation
 todo
+
+#### Dependencies
+- requests
+- beautifulsoup4
+- simplejson

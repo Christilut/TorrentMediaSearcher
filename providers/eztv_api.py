@@ -1,9 +1,8 @@
 import re
-
 import requests
 from bs4 import BeautifulSoup
 
-from providers.base_api import *
+from providers.base_api import BaseAPI, QualityNotFound, ShowNotFound, EpisodeNotFound
 
 
 class EZTVAPI(BaseAPI):

@@ -1,6 +1,5 @@
 import re
 
-
 class BaseAPI():
 
     _URL = None

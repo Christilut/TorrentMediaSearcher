@@ -33,7 +33,7 @@ class TorrentProjectAPI(BaseAPI):
         'COMPLETE',
     ]
 
-    def _query_tvshow(self, show, season, episode):
+    def _query_tvshow(self, show, season, episode, quality):
         query_string = show.replace(' ', '+')
         specifier = 's%02d' % season + 'e%02d' % episode
 
@@ -43,37 +43,19 @@ class TorrentProjectAPI(BaseAPI):
         if self._get_json(query=query_string)['total_found'] == '0':
             raise ShowNotFound('No results were found for show: ' + show)
 
-        results = dict()
+        result = self._get_magnet_tv(query=query, quality=quality)
 
-        try:
-            quality = self._QUALITY_SPECIFIERS['normal tv']
-            results[quality] = self._get_magnet_tv(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['hd']
-            results[quality] = self._get_magnet_tv(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['fullhd']
-            results[quality] = self._get_magnet_tv(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
+        if len(result) == 0:   # No quality of any kind was found, most likely the episode does not exist.          # TODO never used?
             raise EpisodeNotFound('Could not find episode ' + str(episode) + ' of season ' + str(season) + ' of ' + show)
 
-        return results
+        return result
 
-    def _query_movie(self, movie, year):
+    def _query_movie(self, movie, year, quality):
         query = movie.replace(' ', '+')
         if year is not None: query += '+' + str(year)
 
         # Before searching with specified quality, do a search without, to see if the movie exists
-        if self._get_json(query=query)['total_found'] == '0':
+        if self._get_json(query=query, quality=quality)['total_found'] == '0':
             raise MovieNotFound('No results found for movie: ' + movie)
 
         search_terms = self._wanted_movie.split(' ')            # Get the words in the movie
@@ -82,42 +64,19 @@ class TorrentProjectAPI(BaseAPI):
                 if re.match(s, lan, re.IGNORECASE):
                     self._LANGUAGES.remove(lan)
 
-        results = dict()
+        result = self._get_magnet_movie(query=query, quality=quality)
 
-        try:        # Often movies with many seeders on TorrentProject do not have a quality tag. So quality is unknown.
-            results['unknown quality'] = self._get_magnet_movie(query=query)    # Do not specify a quality
-        except QualityNotFound:
-            print 'Could not find anything without quality specifiers'
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['normal movie']
-            results[quality] = self._get_magnet_movie(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['hd']
-            results[quality] = self._get_magnet_movie(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['fullhd']
-            results[quality] = self._get_magnet_movie(query=query, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        if len(results) == 0:   # No quality of any kind was found, most likely the movie  does not exist.
+        if len(result) == 0:   # No quality of any kind was found, most likely the movie  does not exist.
             raise MovieNotFound('No results found for movie: ' + self._wanted_movie)
 
-        return results
+        return result
 
-    def _get_json(self, query, quality=None):
+    def _get_json(self, query, quality):
         if quality is not None:     # Allow None so a search can be performed without any quality string
             query += '+' + quality
 
         try:
-            req = urllib2.Request('http://torrentproject.com/?s=' + query + '&out=json')
+            req = urllib2.Request(self._URL + '?s=' + query + '&out=json')
         except requests.ConnectionError:
             raise LookupError('Could not reach host')
 
@@ -177,10 +136,10 @@ class TorrentProjectAPI(BaseAPI):
 
         return {'magnet': self._get_magnet(torrent_hash=best['torrent_hash']), 'seeds': best['seeds'] }
 
-    def _get_magnet_movie(self, query, quality=None):
+    def _get_magnet_movie(self, query, quality):
         """ Returns the URL to a torrent/magnet link of specified quality or raise error if not found """
 
-        json = self._get_json(query, quality)
+        json = self._get_json(query=query, quality=quality)
 
         movie = self._wanted_movie
         terms_removed = re.findall(r'-\w+', self._wanted_movie, re.IGNORECASE) # Terms such -foo should be ignored when searching the titles
@@ -216,7 +175,7 @@ class TorrentProjectAPI(BaseAPI):
                 num_leechs = entry['leechs']
 
         if best is None:
-            raise QualityNotFound()
+            raise QualityNotFound('Could not find anything matching the quality: ' + quality)
 
         return {'magnet': self._get_magnet(torrent_hash=best['torrent_hash']), 'seeds': best['seeds'] }
 

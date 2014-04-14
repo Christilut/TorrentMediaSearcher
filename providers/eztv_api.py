@@ -9,33 +9,15 @@ class EZTVAPI(BaseAPI):
 
     _URL = "http://eztv.it"
 
-    def _query_tvshow(self, show, season, episode):
+    def _query_tvshow(self, show, season, episode, quality):
         show_id = self._get_show_id(show=show)
 
-        results = dict()
+        result = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
 
-        try:
-            quality = self._QUALITY_SPECIFIERS['normal tv']
-            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
-        except QualityNotFound:     # Quality not found, just ignore it
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['hd']
-            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        try:
-            quality = self._QUALITY_SPECIFIERS['fullhd']
-            results[quality] = self._get_magnet_tv(show_id=show_id, show=show, season=season, episode=episode, quality=quality)
-        except QualityNotFound:
-            print 'Could not find anything matching the quality:', quality
-
-        if len(results) == 0:   # No quality of any kind was found, most likely the episode does not exist.
+        if len(result) == 0:   # No quality of any kind was found, most likely the episode does not exist.
             raise EpisodeNotFound('Could not find episode ' + str(episode) + ' of season ' + str(season) + ' of ' + show)
 
-        return results
+        return result
 
     def _query_movie(self, *args):
         raise RuntimeError('Movies are not supported in the EZTV provider')
@@ -95,9 +77,9 @@ class EZTVAPI(BaseAPI):
                 break
 
         if wanted_episode is None:
-            raise QualityNotFound()
+            raise QualityNotFound('Could not find anything matching the quality: ' + quality)
 
-        return {'magnet': wanted_episode.parent.next_sibling.next_sibling.find(class_='magnet').get('href'), 'seeds': 'unknown'}
+        return {'magnet': wanted_episode.parent.next_sibling.next_sibling.find(class_='magnet').get('href'), 'seeds': 'unknown'}    # EZTV does not shows seeds
 
 
 

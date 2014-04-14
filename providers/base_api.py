@@ -22,8 +22,8 @@ class BaseAPI():
     _wanted_show = None
     _wanted_season = None
     _wanted_episode = None
+    _wanted_quality = None
 
-    _func_to_run = None
 
     def __init__(self, callback):
         self.callback = callback
@@ -31,17 +31,37 @@ class BaseAPI():
         if self._URL is None:
             raise ValueError('URL has not been set')
 
-    def create_tvshow_request(self, show, season, episode):
+    def create_tvshow_request(self, show, season, episode, quality):
         self._wanted_show = show
         self._wanted_season = season
         self._wanted_episode = episode
-        results = self._query_tvshow(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode)
+
+        # Check if quality string is correct
+        if quality == 'normal': quality = self._QUALITY_SPECIFIERS['normal tv']
+        elif quality not in self._QUALITY_SPECIFIERS.keys() and quality not in self._QUALITY_SPECIFIERS.values():
+            raise ValueError('Invalid quality selected')
+
+        for n in self._QUALITY_SPECIFIERS:  # Change quality types into the search string
+            if quality == n: quality = self._QUALITY_SPECIFIERS[n]
+
+        self._wanted_quality = quality
+        results = self._query_tvshow(show=self._wanted_show, season=self._wanted_season, episode=self._wanted_episode, quality=quality)
         self.callback(results)
 
-    def create_movie_request(self, movie, year):
+    def create_movie_request(self, movie, year, quality):
         self._wanted_movie = movie
         self._wanted_year = year
-        results = self._query_movie(movie=movie, year=year)
+
+        # Check if quality string is correct
+        if quality == 'normal': quality = self._QUALITY_SPECIFIERS['normal movie']
+        elif quality not in self._QUALITY_SPECIFIERS.keys() and quality not in self._QUALITY_SPECIFIERS.values() and quality is not None:
+            raise ValueError('Invalid quality selected')
+
+        for n in self._QUALITY_SPECIFIERS:  # Change quality types into the search string
+            if quality == n: quality = self._QUALITY_SPECIFIERS[n]
+
+        self._wanted_quality = quality
+        results = self._query_movie(movie=movie, year=year, quality=quality)
         self.callback(results)
 
     def _query_tvshow(self, show, season, episode):

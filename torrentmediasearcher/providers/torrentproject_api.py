@@ -4,7 +4,7 @@ import simplejson
 from bs4 import BeautifulSoup
 import requests
 
-from providers.base_api import BaseAPI, ShowNotFound, EpisodeNotFound, QualityNotFound, MovieNotFound
+from base_api import BaseAPI, ShowNotFound, EpisodeNotFound, QualityNotFound, MovieNotFound
 
 
 class TorrentProjectAPI(BaseAPI):

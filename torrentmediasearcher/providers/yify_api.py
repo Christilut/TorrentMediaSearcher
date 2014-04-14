@@ -1,7 +1,9 @@
-from base_api import BaseAPI, MovieNotFound, QualityNotFound
 import simplejson
 import requests
 import urllib2
+
+from base_api import BaseAPI, MovieNotFound, QualityNotFound
+
 
 class YIFYAPI(BaseAPI):
 

@@ -4,3 +4,7 @@
 Thumbs.db
 *.log
 *.ini
+
+build/
+dist/
+MANIFEST

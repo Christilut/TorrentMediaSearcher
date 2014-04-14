@@ -1,13 +1,16 @@
-from providers.eztv_api import EZTVAPI
-from providers.torrentproject_api import TorrentProjectAPI
-from providers.yify_api import YIFYAPI
+__author__ = "Christiaan Maks (christiaanmaks@mylittlesky.net)"
+__version__ = "1.0"
+__copyright__ = "Copyright (c) 2014 Christiaan Maks"
+__license__ = "GPLv2"
+
+__all__ = ['TorrentMediaSearcher']
+
+from .providers.eztv_api import EZTVAPI
+from .providers.torrentproject_api import TorrentProjectAPI
+from .providers.yify_api import YIFYAPI
 
 
 class TorrentMediaSearcher():
-                        # TODO search for complete season and if they have more seeds, prioritize them
-                        # TODO check for PROPER / REPACK releases on eztv
-                        # TODO add seeders so users can make an informed decision which torrent to use
-                        # TODO add more providers, YFIY, others
 
     _PROVIDERS = {
         'eztv' : EZTVAPI,
@@ -21,7 +24,7 @@ class TorrentMediaSearcher():
             print repr(n), ':', results[n]
 
     @staticmethod
-    def request_movie_magnets(provider, movie, year=None, quality=None, callback=None):
+    def request_movie_magnet(provider, movie, year=None, quality=None, callback=None):
         if provider in TorrentMediaSearcher._PROVIDERS:
             provider_class = TorrentMediaSearcher._PROVIDERS[provider]
         else:
@@ -38,7 +41,7 @@ class TorrentMediaSearcher():
         search.create_movie_request(movie=movie, year=year, quality=quality)
 
     @staticmethod
-    def request_tv_magnets(provider, show, season, episode, quality=None, callback=None):
+    def request_tv_magnet(provider, show, season, episode, quality=None, callback=None):
         if provider in TorrentMediaSearcher._PROVIDERS:
             provider_class = TorrentMediaSearcher._PROVIDERS[provider]
         else:

@@ -19,7 +19,7 @@ Torrents with the most seeds are prioritized. Works with threads and a function 
 ### Usage
 For usage examples, see:
 
-https://github.com/Christilut/TorrentMediaSearcher/blob/master/examples/examples.py
+torrentmediasearcher/examples/examples.py
 
 ### Installation
 Windows users can run the .exe installer

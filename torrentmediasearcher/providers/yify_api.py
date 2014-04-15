@@ -14,7 +14,7 @@ class YIFYAPI(BaseAPI):
         query = 'keywords=' + movie.replace(' ', '%20')
         if year is not None: query += '%20' + str(year)
 
-        result = self._get_magnet_movie(query=query, quality=quality)
+        result = self._get_magnet_movie(query=query, quality=quality, year=year)
 
         return result
 
@@ -31,22 +31,25 @@ class YIFYAPI(BaseAPI):
 
         return json
 
-    def _get_magnet_movie(self, query, quality):
+    def _get_magnet_movie(self, query, quality, year):
 
         json = self._get_json(query=query)
         if 'error' in json:
             if json['error'] == 'No movies found':
                 raise MovieNotFound('No results found for movie: ' + self._wanted_movie)
-
+        print json
         movie = None
         movielist = json['MovieList']
 
-        if quality is None:     # If no quality specified, use first result.
-            movie = movielist[0]
-        else:
-            for n in range(0, json['MovieCount']):
-                if movielist[n]['Quality'] == quality:
-                    movie = movielist[n]
+        for n in range(0, json['MovieCount']):
+            if quality is not None and movielist[n]['Quality'] != quality:
+                continue
+
+            if year is not None and movielist[n]['MovieYear'] != str(year):  # Skip if year is incorrect
+                continue
+
+            movie = movielist[n]
+            break
 
         if movie is None:
             raise QualityNotFound('Could not find anything matching the quality: ' + str(quality))

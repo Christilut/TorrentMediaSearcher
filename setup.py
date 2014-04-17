@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
 	name = 'TorrentMediaSearcher',
 	packages = ['torrentmediasearcher', 'torrentmediasearcher.providers'],
-	version = '1.0.2',
+	version = '1.0.3',
 	description = 'Fetches TV and movie magnet links from various torrent providers',
 	author = 'Christiaan Maks',
 	author_email = 'christiaanmaks@mylittlesky.net',

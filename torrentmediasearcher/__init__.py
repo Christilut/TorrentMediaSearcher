@@ -21,7 +21,7 @@ class TorrentMediaSearcher():
     @staticmethod
     def _print_results(results):
         for n in results:
-            print repr(n), ':', results[n]
+            print(repr(n), ':', results[n])
 
     @staticmethod
     def request_movie_magnet(provider, movie, year=None, quality=None, callback=None):
@@ -34,7 +34,7 @@ class TorrentMediaSearcher():
             raise ValueError('Invalid year input, please use the yyyy format or do not use the year parameter (results will be less accurate)')
 
         if callback is None:
-            print 'No callback function specified, only printing results'
+            print('No callback function specified, only printing results')
             callback = TorrentMediaSearcher._print_results
 
         search = provider_class(callback=callback)
@@ -48,7 +48,7 @@ class TorrentMediaSearcher():
             raise ValueError('No valid search provider selected, choose from: ' + str(TorrentMediaSearcher._PROVIDERS.keys()))
 
         if callback is None:
-            print 'No callback function specified, only printing results'
+            print('No callback function specified, only printing results')
             callback = TorrentMediaSearcher._print_results
 
         search = provider_class(callback=callback)

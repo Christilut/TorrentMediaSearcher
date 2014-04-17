@@ -1,10 +1,14 @@
 import re
-import urllib2
 import simplejson
 from bs4 import BeautifulSoup
 import requests
 
-from base_api import BaseAPI, ShowNotFound, EpisodeNotFound, QualityNotFound, MovieNotFound
+try:        # For python 2/3 compatibility
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+
+from .base_api import BaseAPI, ShowNotFound, EpisodeNotFound, QualityNotFound, MovieNotFound
 
 
 class TorrentProjectAPI(BaseAPI):

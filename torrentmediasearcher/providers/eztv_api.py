@@ -2,7 +2,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from base_api import BaseAPI, QualityNotFound, ShowNotFound, EpisodeNotFound
+from .base_api import BaseAPI, QualityNotFound, ShowNotFound, EpisodeNotFound
 
 
 class EZTVAPI(BaseAPI):

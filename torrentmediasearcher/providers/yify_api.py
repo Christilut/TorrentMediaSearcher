@@ -1,8 +1,12 @@
 import simplejson
 import requests
-import urllib2
 
-from base_api import BaseAPI, MovieNotFound, QualityNotFound
+try:        # For python 2/3 compatibility
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+
+from .base_api import BaseAPI, MovieNotFound, QualityNotFound
 
 
 class YIFYAPI(BaseAPI):
@@ -11,15 +15,19 @@ class YIFYAPI(BaseAPI):
 
 
     def _query_movie(self, movie, year, quality):
-        query = 'keywords=' + movie.replace(' ', '%20')
-        if year is not None: query += '%20' + str(year)
+        query = self._create_query(movie=movie, year=year)
 
         result = self._get_magnet_movie(query=query, quality=quality, year=year)
 
         return result
 
-    def _get_json(self, query):
+    def _create_query(self, movie, year):
+        query = 'keywords=' + movie.replace(' ', '%20')
+        if year is not None: query += '%20' + str(year)
 
+        return query
+
+    def _get_json(self, query):
         try:
             req = urllib2.Request(self._URL + 'list.json?' + query)
         except requests.ConnectionError:
@@ -32,7 +40,6 @@ class YIFYAPI(BaseAPI):
         return json
 
     def _get_magnet_movie(self, query, quality, year):
-
         json = self._get_json(query=query)
         if 'error' in json:
             if json['error'] == 'No movies found':

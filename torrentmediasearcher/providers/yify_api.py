@@ -37,7 +37,7 @@ class YIFYAPI(BaseAPI):
         if 'error' in json:
             if json['error'] == 'No movies found':
                 raise MovieNotFound('No results found for movie: ' + self._wanted_movie)
-        print json
+
         movie = None
         movielist = json['MovieList']
 

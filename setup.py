@@ -10,7 +10,8 @@ setup(
 	url = 'https://github.com/Christilut/TorrentMediaSearcher',
 	keywords = ['torrent', 'magnet', 'eztv', 'yify', 'tv', 'movie'],
 	classifiers = [
-		'Programming Language :: Python',
+		'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
 		'Development Status :: 4 - Beta',
 		'Intended Audience :: Developers',
 		'Environment :: Other Environment',
